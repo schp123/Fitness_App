@@ -1,0 +1,36 @@
+{
+  "name": "Forma",
+  "identifier": "de.egler.forma.source",
+  "subtitle": "Krafttraining & Glute Coach",
+  "iconURL": "https://raw.githubusercontent.com/schp123/Fitness_App/main/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+  "tintColor": "#C48B8B",
+  "nsfw": false,
+  "apps": [
+    {
+      "name": "Forma",
+      "bundleIdentifier": "de.egler.forma",
+      "developerName": "Egler",
+      "subtitle": "Krafttraining & Glute Coach",
+      "localizedDescription": "Trainingsplan, Trainingstagebuch, Progressive Overload, Statistiken und KI-Coach.",
+      "iconURL": "https://raw.githubusercontent.com/schp123/Fitness_App/main/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+      "tintColor": "#C48B8B",
+      "category": "lifestyle",
+      "versions": [
+        {
+          "version": "1.1",
+          "buildVersion": "1",
+          "date": "2026-11-15T19:40:32Z",
+          "localizedDescription": "Erste Version: Trainingsplan-Editor, Trainingstagebuch mit Autosave, Historie, Progressive Overload, Statistiken und KI-Coach.",
+          "downloadURL": "https://github.com/schp123/Fitness_App/releases/download/build-1/Forma.ipa",
+          "size": 1130320,
+          "minOSVersion": "17.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {}
+      }
+    }
+  ],
+  "news": []
+}
