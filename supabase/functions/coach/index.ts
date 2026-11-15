@@ -47,10 +47,11 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 }
 
-async function currentUser(auth: string | null): Promise<string | null> {
+async function currentUser(auth: string | null, apikey: string | null): Promise<string | null> {
   if (!auth?.startsWith("Bearer ")) return null;
   const url = Deno.env.get("SUPABASE_URL");
-  const key = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  // Schlüssel der App (publishable oder anon) – sonst der vom Server bereitgestellte
+  const key = apikey || Deno.env.get("SUPABASE_ANON_KEY") || "";
   if (!url) return null;
   const r = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: auth, apikey: key } });
   if (!r.ok) return null;
@@ -62,7 +63,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "method", message: "Nur POST." }, 405);
 
-  const userId = await currentUser(req.headers.get("Authorization"));
+  const userId = await currentUser(req.headers.get("Authorization"), req.headers.get("apikey"));
   if (!userId) return json({ error: "auth", message: "Bitte in der App neu anmelden." }, 401);
 
   const apiKey = Deno.env.get("GROQ_API_KEY");

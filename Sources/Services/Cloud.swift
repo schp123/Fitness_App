@@ -77,6 +77,7 @@ enum CloudError: LocalizedError {
             if body.contains("fitness_records") && (body.contains("does not exist") || code == 404) {
                 return "Tabelle fehlt – bitte supabase/schema.sql im SQL-Editor ausführen."
             }
+            if body.contains("Invalid API key") || body.contains("No API key") { return "Schlüssel ungültig – bitte den publishable/anon key aus Supabase → Project Settings → API Keys prüfen." }
             if code == 401 { return "Anmeldung abgelaufen – bitte neu anmelden." }
             if let d = body.data(using: .utf8), let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
                let msg = (obj["message"] ?? obj["msg"] ?? obj["error_description"]) as? String {
@@ -126,7 +127,12 @@ final class Cloud {
         req.httpMethod = method
         req.timeoutInterval = timeout
         req.setValue(config.key, forHTTPHeaderField: "apikey")
-        req.setValue("Bearer \(token ?? config.key)", forHTTPHeaderField: "Authorization")
+        // Neue Schlüssel (sb_publishable_…) sind kein JWT und dürfen nicht als Bearer gesendet werden.
+        if let token {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else if config.key.hasPrefix("eyJ") {
+            req.setValue("Bearer \(config.key)", forHTTPHeaderField: "Authorization")
+        }
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let prefer { req.setValue(prefer, forHTTPHeaderField: "Prefer") }
         req.httpBody = body

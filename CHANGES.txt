@@ -1,1 +1,1 @@
-Neu: Simulator-Test mit Screenshots (intern).
+Fix: Anmeldung mit dem neuen Supabase publishable key (sb_publishable_…).
