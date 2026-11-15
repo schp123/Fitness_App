@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 // MARK: - Datenmodell der Bewegungsanimationen
 
@@ -70,8 +71,8 @@ private enum Rig {
     static let canvasH = 0.75
 
     static func dir(_ deg: Double) -> CGPoint {
-        let r = deg * .pi / 180
-        return CGPoint(x: cos(r), y: sin(r))
+        let r: Double = deg * Double.pi / 180
+        return CGPoint(x: Foundation.cos(r), y: Foundation.sin(r))
     }
     static func add(_ p: CGPoint, _ v: CGPoint, _ s: Double = 1) -> CGPoint {
         CGPoint(x: p.x + v.x * s, y: p.y + v.y * s)
@@ -83,15 +84,18 @@ private enum Rig {
 
     /// Zwei-Gelenk-IK: liefert (Mittelgelenk, Endpunkt)
     static func ik(_ a: CGPoint, _ b: CGPoint, _ l1: Double, _ l2: Double, _ side: Double) -> (CGPoint, CGPoint) {
-        let dx = b.x - a.x, dy = b.y - a.y
-        var dist = (dx * dx + dy * dy).squareRoot()
-        dist = max(abs(l1 - l2) + 1e-4, min(l1 + l2 - 1e-4, dist))
-        let base = atan2(dy, dx)
-        let c = (l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist)
-        let ang = acos(max(-1, min(1, c)))
-        let joint = CGPoint(x: a.x + l1 * cos(base + side * ang), y: a.y + l1 * sin(base + side * ang))
-        let end = CGPoint(x: a.x + dist * cos(base), y: a.y + dist * sin(base))
-        return (joint, end)
+        let ax = Double(a.x), ay = Double(a.y)
+        let dx = Double(b.x) - ax, dy = Double(b.y) - ay
+        var dist: Double = (dx * dx + dy * dy).squareRoot()
+        dist = Swift.max(Swift.abs(l1 - l2) + 1e-4, Swift.min(l1 + l2 - 1e-4, dist))
+        let base: Double = Foundation.atan2(dy, dx)
+        let c: Double = (l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist)
+        let ang: Double = Foundation.acos(Swift.max(-1, Swift.min(1, c)))
+        let jx: Double = ax + l1 * Foundation.cos(base + side * ang)
+        let jy: Double = ay + l1 * Foundation.sin(base + side * ang)
+        let ex: Double = ax + dist * Foundation.cos(base)
+        let ey: Double = ay + dist * Foundation.sin(base)
+        return (CGPoint(x: jx, y: jy), CGPoint(x: ex, y: ey))
     }
 
     struct Resolved {
