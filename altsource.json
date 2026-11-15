@@ -17,12 +17,12 @@
       "category": "lifestyle",
       "versions": [
         {
-          "version": "1.2",
-          "buildVersion": "2",
-          "date": "2026-11-15T19:45:29Z",
-          "localizedDescription": "Neu: Simulator-Test mit Screenshots (intern).",
-          "downloadURL": "https://github.com/schp123/Fitness_App/releases/download/build-2/Forma.ipa",
-          "size": 1130320,
+          "version": "1.3",
+          "buildVersion": "3",
+          "date": "2026-11-15T20:44:42Z",
+          "localizedDescription": "Fix: Anmeldung mit dem neuen Supabase publishable key (sb_publishable_…).",
+          "downloadURL": "https://github.com/schp123/Fitness_App/releases/download/build-3/Forma.ipa",
+          "size": 1130071,
           "minOSVersion": "17.0"
         }
       ],
