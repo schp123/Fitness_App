@@ -17,12 +17,12 @@
       "category": "lifestyle",
       "versions": [
         {
-          "version": "1.5",
-          "buildVersion": "5",
-          "date": "2026-11-15T21:05:59Z",
+          "version": "1.6",
+          "buildVersion": "6",
+          "date": "2026-11-15T21:10:08Z",
           "localizedDescription": "Neu: Animationen zu jeder Übung – eigene Bewegungsdarstellung mit hervorgehobenem Zielmuskel (Training, Übungsauswahl, Übungsdetails). Fix: Anmeldung mit publishable key.",
-          "downloadURL": "https://github.com/schp123/Fitness_App/releases/download/build-5/Forma.ipa",
-          "size": 330,
+          "downloadURL": "https://github.com/schp123/Fitness_App/releases/download/build-6/Forma.ipa",
+          "size": 1202325,
           "minOSVersion": "17.0"
         }
       ],
