@@ -1,0 +1,76 @@
+name: Simulator-Test
+
+on:
+  push:
+    branches: [main]
+    paths: ["Sources/**", "project.yml", ".github/workflows/smoke.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: XcodeGen
+        run: brew install xcodegen && xcodegen generate
+
+      - name: Für Simulator bauen
+        run: |
+          set -o pipefail
+          xcodebuild -project Forma.xcodeproj -scheme Forma -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath dd CODE_SIGNING_ALLOWED=NO build 2>&1 | tail -5
+
+      - name: Starten & Screenshots
+        run: |
+          set -x
+          APP=$(find dd/Build/Products -name "Forma.app" -maxdepth 3 | head -1)
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import sys,json
+          d=json.load(sys.stdin)['devices']
+          c=[x for k,v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone')]
+          c.sort(key=lambda x: ('Pro' in x['name'], x['name']))
+          print(c[-1]['udid'])")
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" "$APP"
+          mkdir -p shots
+          shot() {
+            xcrun simctl terminate "$UDID" de.egler.forma || true
+            xcrun simctl launch --console-pty "$UDID" de.egler.forma "$@" > "shots/log-$NAME.txt" 2>&1 &
+            sleep 9
+            xcrun simctl io "$UDID" screenshot "shots/$NAME.png"
+            if ! xcrun simctl spawn "$UDID" launchctl list | grep -q de.egler.forma; then echo "CRASH bei $NAME" | tee -a shots/crashes.txt; fi
+          }
+          NAME=1-home shot -demo -tab home
+          NAME=2-training shot -tab training
+          NAME=3-progress shot -tab progress
+          NAME=4-coach shot -tab coach
+          NAME=5-profile shot -tab profile
+          xcrun simctl ui "$UDID" appearance dark
+          NAME=6-home-dark shot -tab home
+          NAME=7-progress-dark shot -tab progress
+          xcrun simctl ui "$UDID" appearance light
+          NAME=8-active shot -active
+          find ~/Library/Logs/DiagnosticReports -name "Forma*" -newer "$APP" -exec cp {} shots/ \; 2>/dev/null || true
+          ls -la shots
+
+      - name: Screenshots in Branch „screens“ ablegen
+        if: always()
+        run: |
+          cd shots || exit 0
+          git init -q
+          git checkout -q -b screens
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Screenshots ${{ github.sha }}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" screens

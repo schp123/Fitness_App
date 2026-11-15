@@ -76,6 +76,9 @@ struct RootView: View {
         .preferredColorScheme(scheme)
         .task {
             Seed.runIfNeeded(context)
+            #if targetEnvironment(simulator)
+            DemoData.applyLaunchArguments(context)
+            #endif
             let p = UserProfile.current(context)
             UserDefaults.standard.set(p.restNotifications, forKey: "restNotifications")
             ready = true
