@@ -7,6 +7,7 @@ import CryptoKit
 struct ExerciseDTO: Codable {
     var id: UUID; var name: String; var muscle: String; var secondary: String; var kind: String
     var increment: Double; var technique: String; var isCustom: Bool; var isArchived: Bool; var createdAt: Date
+    var animationKey: String?
 }
 struct PlanItemDTO: Codable {
     var id: UUID; var order: Int; var exerciseID: UUID; var exerciseName: String; var muscle: String; var kind: String
@@ -74,7 +75,8 @@ enum BackupCoding {
 extension Exercise {
     var dto: ExerciseDTO {
         ExerciseDTO(id: id, name: name, muscle: muscleRaw, secondary: secondaryRaw, kind: kindRaw, increment: increment,
-                    technique: technique, isCustom: isCustom, isArchived: isArchived, createdAt: createdAt)
+                    technique: technique, isCustom: isCustom, isArchived: isArchived, createdAt: createdAt,
+                    animationKey: animationKey)
     }
 }
 extension TrainingPlan {
@@ -178,12 +180,14 @@ enum BackupStore {
         for d in file.exercises {
             if let e = exByID[d.id] {
                 if d.isCustom { e.name = d.name; e.technique = d.technique }
+                if let k = d.animationKey, !k.isEmpty, e.animationKey.isEmpty { e.animationKey = k }
                 continue
             }
             let e = Exercise(id: d.id, name: d.name, muscle: MuscleGroup(rawValue: d.muscle) ?? .other,
                              kind: ExerciseKind(rawValue: d.kind) ?? .weighted, increment: d.increment,
                              technique: d.technique, isCustom: d.isCustom)
             e.secondaryRaw = d.secondary
+            e.animationKey = d.animationKey ?? ""
             e.isArchived = d.isArchived
             e.createdAt = d.createdAt
             context.insert(e)

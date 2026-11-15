@@ -263,6 +263,13 @@ struct ExerciseProgressView: View {
         let lastEntry = Analytics.lastEntry(exerciseID, in: sessions)
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
+                if let anim = ex?.animation {
+                    ExerciseAnimationView(animation: anim)
+                        .frame(maxHeight: 220)
+                        .frame(maxWidth: .infinity)
+                        .padding(10)
+                        .background(Theme.card, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                }
                 HStack(spacing: 10) {
                     StatTile(value: rec.maxWeight > 0 ? "\(Fmt.kg(rec.maxWeight))" : "\(rec.maxReps)",
                              label: rec.maxWeight > 0 ? "Bestes Gewicht (× \(rec.maxWeightReps))" : "Meiste Wdh.", icon: "star")

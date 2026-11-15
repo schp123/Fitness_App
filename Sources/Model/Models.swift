@@ -97,6 +97,8 @@ final class Exercise {
     var isCustom: Bool = false
     var isArchived: Bool = false
     var createdAt: Date = Date()
+    /// Schlüssel der Bewegungsanimation ("" = Standard nach Name bzw. keine)
+    var animationKey: String = ""
 
     init(id: UUID = UUID(), name: String, muscle: MuscleGroup, secondary: [MuscleGroup] = [], kind: ExerciseKind = .weighted,
          increment: Double = 2.5, technique: String = "", isCustom: Bool = false) {

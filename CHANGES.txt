@@ -1,1 +1,1 @@
-Fix: Anmeldung mit dem neuen Supabase publishable key (sb_publishable_…).
+Neu: Animationen zu jeder Übung – eigene Bewegungsdarstellung mit hervorgehobenem Zielmuskel (Training, Übungsauswahl, Übungsdetails). Fix: Anmeldung mit publishable key.

@@ -130,7 +130,7 @@ struct ExerciseLogCard: View {
     var onReplace: () -> Void
     @State private var showNote = false
     @State private var confirmRemove = false
-    @State private var showTechnique = false
+    @State private var showDemo = false
 
     private var last: SessionExercise? { Analytics.lastEntry(entry.exerciseID, in: sessions, excluding: session.id) }
     private var advice: Analytics.Advice? {
@@ -141,7 +141,20 @@ struct ExerciseLogCard: View {
 
     var body: some View {
         Card {
-            HStack(alignment: .top) {
+            HStack(alignment: .top, spacing: 12) {
+                if let anim = catalogItem?.animation {
+                    Button { showDemo = true } label: {
+                        ExerciseThumb(animation: anim, animated: !entry.isComplete, width: 76)
+                            .overlay(alignment: .bottomTrailing) {
+                                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                    .font(.system(size: 9, weight: .bold)).padding(4)
+                                    .background(Theme.card.opacity(0.9), in: Circle()).padding(3)
+                                    .foregroundStyle(Theme.muted)
+                            }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Ausführung ansehen")
+                }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(entry.name).font(Theme.serif(.title3, .semibold)).foregroundStyle(Theme.ink)
                     HStack(spacing: 6) {
@@ -159,11 +172,6 @@ struct ExerciseLogCard: View {
 
             if !entry.planNote.isEmpty {
                 Text(entry.planNote).font(.footnote).foregroundStyle(Theme.muted)
-            }
-            if showTechnique, let t = catalogItem?.technique, !t.isEmpty {
-                Text(t).font(.footnote).foregroundStyle(Theme.ink)
-                    .padding(10)
-                    .background(Theme.beige.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
             }
 
             if entry.kind == .duration {
@@ -204,6 +212,10 @@ struct ExerciseLogCard: View {
                     .background(Theme.beige.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
             }
         }
+        .sheet(isPresented: $showDemo) {
+            ExerciseDemoSheet(name: entry.name, animation: catalogItem?.animation, muscle: entry.muscle,
+                              secondary: catalogItem?.secondary ?? [], technique: catalogItem?.technique ?? "")
+        }
         .confirmationDialog("\(entry.name) aus diesem Training entfernen?", isPresented: $confirmRemove, titleVisibility: .visible) {
             Button("Entfernen", role: .destructive) {
                 context.delete(entry)
@@ -222,9 +234,7 @@ struct ExerciseLogCard: View {
                 Router.shared.tab = .coach
                 WorkoutManager.shared.showActive = false
             } label: { Label("Technik erklären (Coach)", systemImage: "sparkles") }
-            if let t = catalogItem?.technique, !t.isEmpty {
-                Button { showTechnique.toggle() } label: { Label(showTechnique ? "Technik-Hinweis ausblenden" : "Technik-Hinweis", systemImage: "info.circle") }
-            }
+            Button { showDemo = true } label: { Label("Ausführung ansehen", systemImage: "play.rectangle") }
             Button(role: .destructive) { confirmRemove = true } label: { Label("Aus Training entfernen", systemImage: "trash") }
         } label: {
             Image(systemName: "ellipsis.circle").font(.title3).foregroundStyle(Theme.muted)

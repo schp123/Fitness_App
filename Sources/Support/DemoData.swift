@@ -1,10 +1,13 @@
 import Foundation
 import SwiftData
+import SwiftUI
 
 #if targetEnvironment(simulator)
 /// Nur im Simulator (automatische Screenshot-Tests): erzeugt Beispiel-Historie.
 /// Wird ausschließlich mit dem Startargument -demo ausgeführt, nie auf dem iPhone.
 enum DemoData {
+    static var gallery: Bool { ProcessInfo.processInfo.arguments.contains("-gallery") }
+
     @MainActor
     static func applyLaunchArguments(_ context: ModelContext) {
         let args = ProcessInfo.processInfo.arguments
@@ -74,6 +77,28 @@ enum DemoData {
         let all = (try? context.fetch(FetchDescriptor<WorkoutSession>())) ?? []
         for s in all { for e in s.exercises { Analytics.refreshPRs(e, sessions: all) } }
         try? context.save()
+    }
+}
+
+/// Alle Animationen in Start- und Endposition (nur für den automatischen Test)
+struct AnimationGallery: View {
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
+                ForEach(ExerciseAnimation.choices, id: \.key) { a in
+                    VStack(spacing: 2) {
+                        HStack(spacing: 2) {
+                            ExerciseAnimationView(animation: a, animated: false, staticPhase: 0)
+                            ExerciseAnimationView(animation: a, animated: false, staticPhase: 1)
+                        }
+                        Text(a.label).font(.system(size: 9))
+                    }
+                    .background(Theme.card)
+                }
+            }
+            .padding(4)
+        }
+        .background(Theme.bg)
     }
 }
 #endif

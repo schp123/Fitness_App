@@ -74,6 +74,9 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(scheme)
+        #if targetEnvironment(simulator)
+        .overlay { if DemoData.gallery { AnimationGallery() } }
+        #endif
         .task {
             Seed.runIfNeeded(context)
             #if targetEnvironment(simulator)

@@ -72,6 +72,7 @@ enum Seed {
         var byName: [String: Exercise] = [:]
         for d in catalog {
             let e = Exercise(name: d.name, muscle: d.muscle, secondary: d.secondary, kind: d.kind, increment: d.increment, technique: d.technique)
+            e.animationKey = ExerciseAnimation.defaultKeys[d.name] ?? ""
             context.insert(e)
             byName[d.name] = e
         }

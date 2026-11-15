@@ -35,7 +35,8 @@ struct ExercisePicker: View {
                                 onPick(e)
                                 dismiss()
                             } label: {
-                                HStack {
+                                HStack(spacing: 12) {
+                                    ExerciseThumb(animation: e.animation, width: 52)
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(e.name).foregroundStyle(Theme.ink)
                                         if !e.secondary.isEmpty {
@@ -79,6 +80,7 @@ struct ExerciseEditor: View {
     @State private var kind: ExerciseKind = .weighted
     @State private var increment: Double = 2.5
     @State private var technique = ""
+    @State private var animationKey = ""
 
     var body: some View {
         NavigationStack {
@@ -98,6 +100,17 @@ struct ExerciseEditor: View {
                             DecimalField(value: $increment, placeholder: "2,5").frame(width: 70)
                             Text("kg").foregroundStyle(Theme.muted)
                         }
+                    }
+                }
+                Section("Animation") {
+                    Picker("Bewegung", selection: $animationKey) {
+                        Text("Keine").tag("")
+                        ForEach(ExerciseAnimation.choices, id: \.key) { Text($0.label).tag($0.key) }
+                    }
+                    if let anim = ExerciseAnimation.named(animationKey) {
+                        ExerciseAnimationView(animation: anim)
+                            .frame(maxHeight: 180)
+                            .listRowBackground(Theme.card)
                     }
                 }
                 Section("Nebenmuskeln") {
@@ -130,6 +143,7 @@ struct ExerciseEditor: View {
                 if let e = exercise {
                     name = e.name; muscle = e.muscle; secondary = Set(e.secondary); kind = e.kind
                     increment = e.increment; technique = e.technique
+                    animationKey = e.animation?.key ?? ""
                 } else {
                     name = prefillName
                 }
@@ -152,6 +166,7 @@ struct ExerciseEditor: View {
         e.secondary = MuscleGroup.allCases.filter { secondary.contains($0) && $0 != muscle }
         e.increment = kind == .duration ? 0 : increment
         e.technique = technique
+        e.animationKey = animationKey
         // Name in Plänen aktualisieren (Historie behält den damaligen Namen)
         if exercise != nil {
             let items = (try? context.fetch(FetchDescriptor<PlanItem>())) ?? []
@@ -184,7 +199,8 @@ struct ExerciseLibraryView: View {
                     Section(m.label) {
                         ForEach(list) { e in
                             Button { editing = e } label: {
-                                HStack {
+                                HStack(spacing: 12) {
+                                    ExerciseThumb(animation: e.animation, width: 44)
                                     Text(e.name).foregroundStyle(e.isArchived ? Theme.muted : Theme.ink)
                                     Spacer()
                                     if e.isCustom { Pill(text: "Eigene") }
