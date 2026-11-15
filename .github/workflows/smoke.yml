@@ -27,9 +27,10 @@ jobs:
           set -o pipefail
           xcodebuild -project Forma.xcodeproj -scheme Forma -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath dd CODE_SIGNING_ALLOWED=NO build 2>&1 | tail -5
+            -derivedDataPath dd CODE_SIGNING_ALLOWED=NO build > sim-build.log 2>&1 || { grep -E "error:|note:" sim-build.log | head -40; mkdir -p shots; grep -E -B2 -A6 "error:" sim-build.log | head -200 > shots/build-errors.txt; exit 1; }
 
       - name: Starten & Screenshots
+        if: success()
         run: |
           set -x
           APP=$(find dd/Build/Products -name "Forma.app" -maxdepth 3 | head -1)
