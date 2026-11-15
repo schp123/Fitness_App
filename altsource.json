@@ -17,12 +17,12 @@
       "category": "lifestyle",
       "versions": [
         {
-          "version": "1.3",
-          "buildVersion": "3",
-          "date": "2026-11-15T20:44:42Z",
-          "localizedDescription": "Fix: Anmeldung mit dem neuen Supabase publishable key (sb_publishable_…).",
-          "downloadURL": "https://github.com/schp123/Fitness_App/releases/download/build-3/Forma.ipa",
-          "size": 1130071,
+          "version": "1.4",
+          "buildVersion": "4",
+          "date": "2026-11-15T20:57:02Z",
+          "localizedDescription": "Neu: Animationen zu jeder Übung – eigene Bewegungsdarstellung mit hervorgehobenem Zielmuskel (Training, Übungsauswahl, Übungsdetails). Fix: Anmeldung mit publishable key.",
+          "downloadURL": "https://github.com/schp123/Fitness_App/releases/download/build-4/Forma.ipa",
+          "size": 330,
           "minOSVersion": "17.0"
         }
       ],
