@@ -1,0 +1,127 @@
+name: IPA bauen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-ipa
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: XcodeGen installieren
+        run: brew install xcodegen
+
+      - name: Xcode-Projekt erzeugen
+        run: xcodegen generate
+
+      - name: App bauen (unsigniert)
+        env:
+          SB_URL: ${{ vars.SUPABASE_URL }}
+          SB_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Forma.xcodeproj \
+            -target Forma \
+            -configuration Release \
+            -sdk iphoneos \
+            SYMROOT="$PWD/build" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            MARKETING_VERSION=1.${{ github.run_number }} \
+            FORMA_SUPABASE_URL="$SB_URL" \
+            FORMA_SUPABASE_KEY="$SB_KEY" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build 2>&1 | tee build.log | grep -E "error:|warning: unre|BUILD" || true
+          test -d build/Release-iphoneos/Forma.app || { grep -E "error:" build.log | head -80; exit 1; }
+
+      - name: Fehlerprotokoll sichern
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+
+      - name: IPA packen
+        run: |
+          mkdir -p Payload
+          cp -R build/Release-iphoneos/Forma.app Payload/
+          zip -qry Forma.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Forma-ipa
+          path: Forma.ipa
+
+      - name: Als Release veröffentlichen (direkter Download aufs iPhone)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Forma 1.${{ github.run_number }}
+          make_latest: true
+          files: Forma.ipa
+
+      - name: SideStore-Quelle aktualisieren (altsource.json)
+        env:
+          RUN: ${{ github.run_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          export SIZE=$(stat -f%z Forma.ipa)
+          python3 - <<'PY'
+          import json, os, datetime
+          run = os.environ["RUN"]; repo = os.environ["REPO"]
+          raw = f"https://raw.githubusercontent.com/{repo}/main"
+          try:
+              notes = open("CHANGES.txt", encoding="utf-8").read().strip()
+          except FileNotFoundError:
+              notes = ""
+          icon = f"{raw}/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
+          source = {
+            "name": "Forma",
+            "identifier": "de.egler.forma.source",
+            "subtitle": "Krafttraining & Glute Coach",
+            "iconURL": icon,
+            "tintColor": "#C48B8B",
+            "nsfw": False,
+            "apps": [{
+              "name": "Forma",
+              "bundleIdentifier": "de.egler.forma",
+              "developerName": "Egler",
+              "subtitle": "Krafttraining & Glute Coach",
+              "localizedDescription": "Trainingsplan, Trainingstagebuch, Progressive Overload, Statistiken und KI-Coach.",
+              "iconURL": icon,
+              "tintColor": "#C48B8B",
+              "category": "lifestyle",
+              "versions": [{
+                "version": f"1.{run}",
+                "buildVersion": run,
+                "date": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "localizedDescription": notes or f"Forma 1.{run}",
+                "downloadURL": f"https://github.com/{repo}/releases/download/build-{run}/Forma.ipa",
+                "size": int(os.environ["SIZE"]),
+                "minOSVersion": "17.0"
+              }],
+              "appPermissions": {"entitlements": [], "privacy": {}}
+            }],
+            "news": []
+          }
+          json.dump(source, open("altsource.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add altsource.json
+          git commit -m "SideStore-Quelle: Forma 1.${RUN} [skip ci]" || exit 0
+          for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && break; sleep 5; done
